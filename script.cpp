@@ -21,8 +21,8 @@ static bool MMoriginalEnabled, MMbigMapEnabled, MMzoomoutEnabled, MMfullEnabled,
 static bool leftSignalActive, rightSignalActive, hazardsActive, radioWheelDisabled, mobileRadio, beltedUp, isCurrentlyShuffling, window0down, window1down, window2down, window3down, AWindowDown, hoodOpen, trunkOpen, door0Open, door1Open, door2Open, door3Open, initialized = false;
 static int phoneColorIndex, MMsafetyVal = 0;
 static mapStates mapState;
-int ControlsToDisable[]  = { 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,44,55,69,76,90,102,118,134,153,347,358 };
-int LBControlsToDisable[] = { 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,37,38,68,89,117,133,152,346,44,55,69,76,90,102,118,134,153,347,358 };
+int ControlsToDisable[]  = { 22, 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,44,55,69,76,90,102,118,134,153,347,358 };
+int LBControlsToDisable[] = { 22, 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,37,38,68,89,117,133,152,346,44,55,69,76,90,102,118,134,153,347,358 };
 mINI::INIFile file("ControlExtensionV.ini");
 mINI::INIStructure ini;
 #pragma endregion
@@ -53,6 +53,10 @@ bool to_bool(std::string str) {
 	bool b;
 	is >> std::boolalpha >> b;
 	return b;
+}
+DWORD to_DWORD(std::string input) {
+	DWORD output = strtol(input.c_str(), 0, 0);
+	return output;
 }
 #pragma endregion
 static void loadExternalSettings() {
@@ -638,32 +642,96 @@ static void checkForButtons() {
 			}
 		}
 	}
-	else if (getPlayerVehicle() == NULL && !CONTROLS::_GET_LAST_INPUT_METHOD(0)) {//player is using controller but on foot
+	 if (getPlayerVehicle() == NULL && !CONTROLS::_GET_LAST_INPUT_METHOD(0)) {//player is using controller but on foot
 		if (CONTROLS::IS_CONTROL_PRESSED(2, 205)) {//if holding LB on controller
 			disableFuckingEverything();
-			if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, MinimapButton)) {
+			if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, MinimapButton)) {
 				if (enableMinimapControls && MMsafetyVal > 1) { cycleMinimapState(); }
 			}
-			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, MobileRadioButton)) {
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, MobileRadioButton)) {
 				if (enableMobileRadio) { togglePlayerMobileRadio(); }
 			}
-			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, RadioWheelButton)) {
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, RadioWheelButton)) {
 				if (enableMobileRadio) { toggleRadioWheel(); }
 			}
-			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, RedLaserButton)) {
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, RedLaserButton)) {
 				toggleLaser(true);
 			}
-			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, GreenLaserButton)) {
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, GreenLaserButton)) {
 				toggleLaser(false);
 			}
-			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, DropWeaponButton)) {
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, DropWeaponButton)) {
 				dropWeapon();
 			}
 		}
 	}
 }
 static void checkForKeys() {
-	//same thing as OnKeyDown
+	//ANY TIME
+	if (IsKeyJustUp(to_DWORD(ToggleMobileRadioKey))) {
+		if (enableMobileRadio) { togglePlayerMobileRadio(); }
+	}
+	if (IsKeyJustUp(to_DWORD(ToggleRadioWheelKey))) {
+		if (enableMobileRadio) { toggleRadioWheel(); }
+	}
+	if (IsKeyJustUp(to_DWORD(ToggleMinimapKey))) {
+		if (enableMinimapControls && MMsafetyVal > 1) { cycleMinimapState(); }
+	}
+	if (IsKeyJustUp(to_DWORD(RedLaserKey))) {
+		toggleLaser(true);
+	}
+	if (IsKeyJustUp(to_DWORD(GreenLaserKey))) {
+		toggleLaser(false);
+	}
+	if (getPlayerVehicle == NULL) {//IF PLAYER IS NOT IN VEHICLE
+		if (IsKeyJustUp(to_DWORD(DropWeaponKey))) {
+			dropWeapon();
+		}
+	}
+	if (getPlayerVehicle != NULL && enableVehicleControls) {//IF PLAYER IS IN VEHICLE AND CONTROLS ARE ENABLED
+		if (IsKeyJustUp(to_DWORD(HazardsKey))) {
+			toggleTurnSignals(hazard);
+		}
+		if (IsKeyJustUp(to_DWORD(LeftSignalKey))) {
+			toggleTurnSignals(left);
+		}
+		if (IsKeyJustUp(to_DWORD(RightSignalKey))) {
+			toggleTurnSignals(right);
+		}
+		if (IsKeyJustUp(to_DWORD(SeatbeltKey))) {
+			togglePlayerSeatbelt();
+		}
+		if (IsKeyJustUp(to_DWORD(InteriorLightKey))) {
+			toggleInteriorLight();
+		}
+		if (IsKeyJustUp(to_DWORD(CurrentWindowKey))) {
+			toggleCurrentWindow();
+		}
+		if (IsKeyJustUp(to_DWORD(PassengerWindowKey))) {
+			driverWindowAccess(1);
+		}
+		if (IsKeyJustUp(to_DWORD(DriverRearWindowKey))) {
+			driverWindowAccess(2);
+		}
+		if (IsKeyJustUp(to_DWORD(PassengerRearWindowKey))) {
+			driverWindowAccess(3);
+		}
+		if (IsKeyJustUp(to_DWORD(AllWindowsKey))) {
+			toggleAllWindows();
+		}
+		if (IsKeyJustUp(to_DWORD(HoodKey))) {
+			toggleHood();
+		}
+		if (IsKeyJustUp(to_DWORD(TrunkKey))) {
+			toggleTrunk();
+		}
+		if (IsKeyJustUp(to_DWORD(OpenDoorKey))) {
+			openLocalDoor();
+		}
+		if (IsKeyJustUp(to_DWORD(ShuffleSeatKey))) {
+			shuffleToNextSeat();
+		}
+	}
 }
 #pragma endregion
 int main() {
