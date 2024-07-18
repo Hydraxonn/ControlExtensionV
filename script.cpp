@@ -15,26 +15,26 @@ enum signalTypes {
 	right,
 	hazard
 };
-static DWORD CurrentWindowKey, PassengerWindowKey, DriverRearWindowKey, PassengerRearWindowKey, AllWindowsKey, HoodKey, TrunkKey, InteriorLightKey, ToggleRadioWheelKey, ToggleMobileRadioKey, ToggleMinimapKey, OpenDoorKey, SeatbeltKey, ShuffleSeatKey, LeftSignalKey, RightSignalKey, HazardsKey, RedLaserKey, GreenLaserKey, DropWeaponKey;
+std::string CurrentWindowKey, PassengerWindowKey, DriverRearWindowKey, PassengerRearWindowKey, AllWindowsKey, HoodKey, TrunkKey, InteriorLightKey, ToggleRadioWheelKey, ToggleMobileRadioKey, ToggleMinimapKey, OpenDoorKey, SeatbeltKey, ShuffleSeatKey, LeftSignalKey, RightSignalKey, HazardsKey, RedLaserKey, GreenLaserKey, DropWeaponKey;
 static int vehMinimapButton, vehRadioWheelButton, HazardsButton, LeftSignalButton, RightSignalButton, SeatbeltButton, InteriorLightButton, CurrentWindowButton, PassengerWindowButton, DriverRearWindowButton, PassengerRearWindowButton, AllWindowsButton, HoodButton, TrunkButton, OpenDoorButton, ShuffleSeatButton, MinimapButton, MobileRadioButton, RadioWheelButton, RedLaserButton, GreenLaserButton, DropWeaponButton;
-bool MMoriginalEnabled, MMbigMapEnabled, MMzoomoutEnabled, MMfullEnabled, MMhiddenEnabled, enableVehicleControls, enableMinimapControls, enableMobileRadio, enablePhoneColor, LightOff = true;
-bool leftSignalActive, rightSignalActive, hazardsActive, radioWheelDisabled, mobileRadio, beltedUp, isCurrentlyShuffling, window0down, window1down, window2down, window3down, AWindowDown, hoodOpen, trunkOpen, door0Open, door1Open, door2Open, door3Open, initialized = false;
-int phoneColorIndex, MMsafetyVal = 0;
-mapStates mapState;
-int ControlsToDisable []  = { 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,37,38,68,89,117,133,152,346,44,55,69,76,90,102,118,134,153,347,358 };
-static Hash laserHash = 2455710022;//COMPONENT_AT_AR_LASER
-static Hash redLaserHash = 1073457922; //COMPONENT_AT_AR_LASER_RED
-static Hash laserHashREH = 2248128277; //COMPONENT_AT_AR_LASER_REH
-static Hash redLaserHashREH = 3620657966; //COMPONENT_AT_AR_LASER_RED_REH
-static Hash piLaserHash = 1230280991; //COMPONENT_AT_PI_LASER
-static Hash piLaserHashIR = 743205558; //COMPONENT_AT_PI_LASER_IR
+static bool MMoriginalEnabled, MMbigMapEnabled, MMzoomoutEnabled, MMfullEnabled, MMhiddenEnabled, enableVehicleControls, enableMinimapControls, enableMobileRadio, enablePhoneColor, LightOff = true;
+static bool leftSignalActive, rightSignalActive, hazardsActive, radioWheelDisabled, mobileRadio, beltedUp, isCurrentlyShuffling, window0down, window1down, window2down, window3down, AWindowDown, hoodOpen, trunkOpen, door0Open, door1Open, door2Open, door3Open, initialized = false;
+static int phoneColorIndex, MMsafetyVal = 0;
+static mapStates mapState;
+int ControlsToDisable[]  = { 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,44,55,69,76,90,102,118,134,153,347,358 };
+int LBControlsToDisable[] = { 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,37,38,68,89,117,133,152,346,44,55,69,76,90,102,118,134,153,347,358 };
 mINI::INIFile file("ControlExtensionV.ini");
 mINI::INIStructure ini;
 #pragma endregion
 #pragma region GENERAL FUNCTIONS
 static void disableFuckingEverything() {
-	for (int i : ControlsToDisable) {
+	for (int i = 0; i < 84;i++) {
 		CONTROLS::DISABLE_CONTROL_ACTION(0, ControlsToDisable[i], 0);
+	}
+}
+static void disableEverythingIncludingLB() {
+	for (int i = 0; i < 92; i++) {
+		CONTROLS::DISABLE_CONTROL_ACTION(0, LBControlsToDisable[i], 0);
 	}
 }
 static Ped getPlayerPed() {
@@ -62,31 +62,31 @@ static void loadExternalSettings() {
 	enableVehicleControls = to_bool(ini["FEATURES"]["enableVehicleControls"]);
 	enableMobileRadio = to_bool(ini["FEATURES"]["enableMobileRadio"]);
 	enablePhoneColor = to_bool(ini["FEATURES"]["enablePhoneColor"]);
-	MMoriginalEnabled = to_bool(ini["MAP MODES"]["MMoriginalEnabled"]);
-	MMbigMapEnabled = to_bool(ini["MAP MODES"]["MMbigMapEnabled"]);
-	MMzoomoutEnabled = to_bool(ini["MAP MODES"]["MMzoomoutEnabled"]);
-	MMfullEnabled = to_bool(ini["MAP MODES"]["MMfullEnabled"]);
-	MMhiddenEnabled = to_bool(ini["MAP MODES"]["MMhiddenEnabled"]);
-	CurrentWindowKey = std::stoi(ini["KEYBINDS"]["CurrentWindowKey"]);
-	PassengerWindowKey = std::stoi(ini["KEYBINDS"]["PassengerWindowKey"]);
-	DriverRearWindowKey = std::stoi(ini["KEYBINDS"]["DriverRearWindowKey"]);
-	PassengerRearWindowKey = std::stoi(ini["KEYBINDS"]["PassengerRearWindowKey"]);
-	AllWindowsKey = std::stoi(ini["KEYBINDS"]["AllWindowsKey"]);
-	HoodKey = std::stoi(ini["KEYBINDS"]["HoodKey"]);
-	TrunkKey = std::stoi(ini["KEYBINDS"]["TrunkKey"]);
-	InteriorLightKey = std::stoi(ini["KEYBINDS"]["InteriorLightKey"]);
-	ToggleRadioWheelKey = std::stoi(ini["KEYBINDS"]["ToggleRadioWheelKey"]);
-	ToggleMobileRadioKey = std::stoi(ini["KEYBINDS"]["ToggleMobileRadioKey"]);
-	ToggleMinimapKey = std::stoi(ini["KEYBINDS"]["ToggleMinimapKey"]);
-	OpenDoorKey = std::stoi(ini["KEYBINDS"]["OpenDoorKey"]);
-	SeatbeltKey = std::stoi(ini["KEYBINDS"]["SeatbeltKey"]);
-	ShuffleSeatKey = std::stoi(ini["KEYBINDS"]["ShuffleSeatKey"]);
-	LeftSignalKey = std::stoi(ini["KEYBINDS"]["LeftSignalKey"]);
-	RightSignalKey = std::stoi(ini["KEYBINDS"]["RightSignalKey"]);
-	HazardsKey = std::stoi(ini["KEYBINDS"]["HazardsKey"]);
-	RedLaserKey = std::stoi(ini["KEYBINDS"]["RedLaserKey"]);
-	GreenLaserKey = std::stoi(ini["KEYBINDS"]["GreenLaserKey"]);
-	DropWeaponKey = std::stoi(ini["KEYBINDS"]["DropWeaponKey"]);
+	MMoriginalEnabled = to_bool(ini["MAP MODES"]["enableOriginalMapMode"]);
+	MMbigMapEnabled = to_bool(ini["MAP MODES"]["enableBigMapMode"]);
+	MMzoomoutEnabled = to_bool(ini["MAP MODES"]["enableZoomedOutMode"]);
+	MMfullEnabled = to_bool(ini["MAP MODES"]["enableFullMode"]);
+	MMhiddenEnabled = to_bool(ini["MAP MODES"]["enableHiddenMode"]);
+	CurrentWindowKey = (ini["KEYBINDS"]["CurrentWindowKey"]);
+	PassengerWindowKey = (ini["KEYBINDS"]["PassengerWindowKey"]);
+	DriverRearWindowKey = (ini["KEYBINDS"]["DriverRearWindowKey"]);
+	PassengerRearWindowKey = (ini["KEYBINDS"]["PassengerRearWindowKey"]);
+	AllWindowsKey = (ini["KEYBINDS"]["AllWindowsKey"]);
+	HoodKey = (ini["KEYBINDS"]["HoodKey"]);
+	TrunkKey = (ini["KEYBINDS"]["TrunkKey"]);
+	InteriorLightKey = (ini["KEYBINDS"]["InteriorLightKey"]);
+	ToggleRadioWheelKey = (ini["KEYBINDS"]["ToggleRadioWheelKey"]);
+	ToggleMobileRadioKey = (ini["KEYBINDS"]["ToggleMobileRadioKey"]);
+	ToggleMinimapKey = (ini["KEYBINDS"]["ToggleMinimapKey"]);
+	OpenDoorKey = (ini["KEYBINDS"]["OpenDoorKey"]);
+	SeatbeltKey = (ini["KEYBINDS"]["SeatbeltKey"]);
+	ShuffleSeatKey = (ini["KEYBINDS"]["ShuffleSeatKey"]);
+	LeftSignalKey = (ini["KEYBINDS"]["LeftSignalKey"]);
+	RightSignalKey = (ini["KEYBINDS"]["RightSignalKey"]);
+	HazardsKey = (ini["KEYBINDS"]["HazardsKey"]);
+	RedLaserKey = (ini["KEYBINDS"]["RedLaserKey"]);
+	GreenLaserKey = (ini["KEYBINDS"]["GreenLaserKey"]);
+	DropWeaponKey = (ini["KEYBINDS"]["DropWeaponKey"]);
 	vehMinimapButton = std::stoi(ini["CONTROLLER_VEHICLE"]["vehMinimapButton"]);
 	vehRadioWheelButton = std::stoi(ini["CONTROLLER_VEHICLE"]["vehRadioWheelButton"]);
 	HazardsButton = std::stoi(ini["CONTROLLER_VEHICLE"]["HazardsButton"]);
@@ -110,14 +110,29 @@ static void loadExternalSettings() {
 	GreenLaserButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["GreenLaserButton"]);
 	DropWeaponButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["DropWeaponButton"]);
 }
-static void checkForKeys() {
-	//same thing as OnKeyDown
-}
-static void checkForButtons() {
-	//check for controller keys (this should have been its own function in the first place lol
-}
 static void updateFeatures() {
-	//the old on tick event
+	//PHONE COLOR
+	if (enablePhoneColor) {
+		switch (ENTITY::GET_ENTITY_MODEL(getPlayerPed()))
+		{
+		case 225514697: //Player zero
+			break;
+		case -1692214353: //player_one
+			break;
+		case -1686040670: //player_two
+			break;
+		default:
+			PLAYER::SET_PLAYER_RESET_FLAG_PREFER_REAR_SEATS(PLAYER::GET_PLAYER_INDEX(), phoneColorIndex);
+			break;
+		}
+	}
+	if (mapState == hidden) {
+		UI::HIDE_HUD_AND_RADAR_THIS_FRAME();
+		UI::HIDE_HELP_TEXT_THIS_FRAME();
+		UI::_0x25F87B30C382FCA7();//THEFEED_HIDE_THIS_FRAME
+	}
+	if (beltedUp) { CONTROLS::DISABLE_CONTROL_ACTION(0, 75, true); }
+	if (radioWheelDisabled) { CONTROLS::DISABLE_CONTROL_ACTION(0, 85, true); }
 }
 #pragma region MINIMAP FUNCTIONS
 static void incrementMapState() {
@@ -167,7 +182,21 @@ static void setMinimapMode(mapStates mapState) {
 	}
 }
 static void minimapSafetyCheck() {
-	MMsafetyVal = MMoriginalEnabled + MMbigMapEnabled + MMzoomoutEnabled + MMfullEnabled + MMhiddenEnabled;
+	if (MMoriginalEnabled) {
+		MMsafetyVal = MMsafetyVal + 1;
+	}
+	if (MMbigMapEnabled) {
+		MMsafetyVal = MMsafetyVal + 1;
+	}
+	if (MMzoomoutEnabled) {
+		MMsafetyVal = MMsafetyVal + 1;
+	}
+	if (MMfullEnabled) {
+		MMsafetyVal = MMsafetyVal + 1;
+	}
+	if (MMhiddenEnabled) {
+		MMsafetyVal = MMsafetyVal + 1;
+	}
 	if (MMsafetyVal >= 1) {
 		if (MMoriginalEnabled) { setMinimapMode(original); }
 		else if (MMbigMapEnabled) { setMinimapMode(big); }
@@ -204,7 +233,6 @@ static void cycleMinimapState() {
 		break;
 	}
 }
-
 #pragma endregion
 #pragma region VEHICLE FUNCTIONS
 static Vehicle getPlayerVehicle() {
@@ -564,8 +592,80 @@ static void dropWeapon() {
 	}
 }
 #pragma endregion
-
-
+#pragma region INPUT FUNCTIONS
+static void checkForButtons() {
+	if (getPlayerVehicle() != NULL && enableVehicleControls && !CONTROLS::_GET_LAST_INPUT_METHOD(0)) {//if in car, car ctrls enabled and using controller
+		if (CONTROLS::IS_CONTROL_PRESSED(2, 203)) {//if holding X on controller
+			disableEverythingIncludingLB();
+			if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, AllWindowsButton)) {
+				toggleAllWindows();
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, InteriorLightButton)) {
+				toggleInteriorLight();
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, CurrentWindowButton)) {
+				toggleCurrentWindow();
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, PassengerWindowButton)) {
+				driverWindowAccess(1);
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, SeatbeltButton)) {
+				togglePlayerSeatbelt();
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, TrunkButton)) {
+				toggleTrunk();
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, HoodButton)) {
+				toggleHood();
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, vehMinimapButton)) {
+				if (enableMinimapControls && MMsafetyVal > 1) { cycleMinimapState(); }
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, OpenDoorButton)) {
+				openLocalDoor();
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, ShuffleSeatButton)) {
+				shuffleToNextSeat();
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, DriverRearWindowButton)) {
+				driverWindowAccess(2);
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, PassengerRearWindowButton)) {
+				driverWindowAccess(3);
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, vehRadioWheelButton)) {
+				if (enableMobileRadio) { toggleRadioWheel(); }
+			}
+		}
+	}
+	else if (getPlayerVehicle() == NULL && !CONTROLS::_GET_LAST_INPUT_METHOD(0)) {//player is using controller but on foot
+		if (CONTROLS::IS_CONTROL_PRESSED(2, 205)) {//if holding LB on controller
+			disableFuckingEverything();
+			if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, MinimapButton)) {
+				if (enableMinimapControls && MMsafetyVal > 1) { cycleMinimapState(); }
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, MobileRadioButton)) {
+				if (enableMobileRadio) { togglePlayerMobileRadio(); }
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, RadioWheelButton)) {
+				if (enableMobileRadio) { toggleRadioWheel(); }
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, RedLaserButton)) {
+				toggleLaser(true);
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, GreenLaserButton)) {
+				toggleLaser(false);
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, DropWeaponButton)) {
+				dropWeapon();
+			}
+		}
+	}
+}
+static void checkForKeys() {
+	//same thing as OnKeyDown
+}
+#pragma endregion
 int main() {
 	loadExternalSettings();
 	minimapSafetyCheck();
@@ -573,12 +673,11 @@ int main() {
 	STREAMING::REQUEST_ANIM_DICT("swimming@scuba");
 	while (true)
 	{
-		updateFeatures();
-		checkForKeys();
-		checkForButtons();
+		updateFeatures();//ontick event
+		checkForKeys();//update keyboard
+		checkForButtons();//update controller
 		WAIT(0);
 	}
-
 	return 0;
 }
 void ScriptMain() {
