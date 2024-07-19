@@ -460,21 +460,23 @@ static void shuffleToNextSeat() {
 		
 }
 static void togglePlayerSeatbelt() {
-	if (!beltedUp) {
-		beltedUp = true;
-		AUDIO::PLAY_SOUND(-1, "YES", "HUD_FRONTEND_DEFAULT_SOUNDSET", false, 0, true);
-		PED::SET_PED_CAN_BE_KNOCKED_OFF_VEHICLE(getPlayerPed(), 1);
-		PED::SET_PED_CONFIG_FLAG(getPlayerPed(), 32, false);
-		PED::SET_PED_CAN_BE_DRAGGED_OUT(getPlayerPed(), false);
-		AI::TASK_PLAY_ANIM(getPlayerPed(), "swimming@scuba", "scuba_tank_off", 4.0, -2.0, -1, 48, 0, false, false, false);
-	}
-	else {
-		AUDIO::PLAY_SOUND(-1, "NO", "HUD_FRONTEND_DEFAULT_SOUNDSET", false, 0, true);
-		PED::SET_PED_CAN_BE_KNOCKED_OFF_VEHICLE(getPlayerPed(), 0);
-		PED::SET_PED_CONFIG_FLAG(getPlayerPed(), 32, true);
-		PED::SET_PED_CAN_BE_DRAGGED_OUT(getPlayerPed(), true);
-		AI::TASK_PLAY_ANIM(getPlayerPed(), "swimming@scuba", "scuba_tank_off", 4.0, -2.0, -1, 48, 0, false, false, false);
-		beltedUp = false;
+	if (getPlayerVehicle() != NULL) {
+		if (!beltedUp) {
+			beltedUp = true;
+			AUDIO::PLAY_SOUND(-1, "YES", "HUD_FRONTEND_DEFAULT_SOUNDSET", false, 0, true);
+			PED::SET_PED_CAN_BE_KNOCKED_OFF_VEHICLE(getPlayerPed(), 1);
+			PED::SET_PED_CONFIG_FLAG(getPlayerPed(), 32, false);
+			PED::SET_PED_CAN_BE_DRAGGED_OUT(getPlayerPed(), false);
+			AI::TASK_PLAY_ANIM(getPlayerPed(), "swimming@scuba", "scuba_tank_off", 4.0, -2.0, -1, 48, 0, false, false, false);
+		}
+		else {
+			AUDIO::PLAY_SOUND(-1, "NO", "HUD_FRONTEND_DEFAULT_SOUNDSET", false, 0, true);
+			PED::SET_PED_CAN_BE_KNOCKED_OFF_VEHICLE(getPlayerPed(), 0);
+			PED::SET_PED_CONFIG_FLAG(getPlayerPed(), 32, true);
+			PED::SET_PED_CAN_BE_DRAGGED_OUT(getPlayerPed(), true);
+			AI::TASK_PLAY_ANIM(getPlayerPed(), "swimming@scuba", "scuba_tank_off", 4.0, -2.0, -1, 48, 0, false, false, false);
+			beltedUp = false;
+		}
 	}
 }
 static void toggleTurnSignals(signalTypes signalType) {
