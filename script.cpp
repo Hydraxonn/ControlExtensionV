@@ -1,7 +1,6 @@
 #include "script.h"
 #include "keyboard.h"
 #include "mini/ini.h"
-
 #pragma region VARIABLES
 enum mapStates {
 	original,
@@ -15,8 +14,8 @@ enum signalTypes {
 	right,
 	hazard
 };
-std::string CurrentWindowKey, PassengerWindowKey, DriverRearWindowKey, PassengerRearWindowKey, AllWindowsKey, HoodKey, TrunkKey, InteriorLightKey, ToggleRadioWheelKey, ToggleMobileRadioKey, ToggleMinimapKey, OpenDoorKey, SeatbeltKey, ShuffleSeatKey, LeftSignalKey, RightSignalKey, HazardsKey, RedLaserKey, GreenLaserKey, DropWeaponKey;
-static int vehMinimapButton, vehRadioWheelButton, HazardsButton, LeftSignalButton, RightSignalButton, SeatbeltButton, InteriorLightButton, CurrentWindowButton, PassengerWindowButton, DriverRearWindowButton, PassengerRearWindowButton, AllWindowsButton, HoodButton, TrunkButton, OpenDoorButton, ShuffleSeatButton, MinimapButton, MobileRadioButton, RadioWheelButton, RedLaserButton, GreenLaserButton, DropWeaponButton;
+std::string CurrentWindowKey, PassengerWindowKey, DriverRearWindowKey, PassengerRearWindowKey, AllWindowsKey, HoodKey, TrunkKey, InteriorLightKey, ToggleRadioWheelKey, ToggleMobileRadioKey, ToggleMinimapKey, OpenDoorKey, SeatbeltKey, ShuffleSeatKey, LeftSignalKey, RightSignalKey, HazardsKey, RedLaserKey, GreenLaserKey, DropWeaponKey, FlashlightKey, SuppressorKey;
+static int vehMinimapButton, vehRadioWheelButton, HazardsButton, LeftSignalButton, RightSignalButton, SeatbeltButton, InteriorLightButton, CurrentWindowButton, PassengerWindowButton, DriverRearWindowButton, PassengerRearWindowButton, AllWindowsButton, HoodButton, TrunkButton, OpenDoorButton, ShuffleSeatButton, MinimapButton, MobileRadioButton, RadioWheelButton, RedLaserButton, GreenLaserButton, DropWeaponButton, FlashlightButton, SuppressorButton;
 static bool MMoriginalEnabled, MMbigMapEnabled, MMzoomoutEnabled, MMfullEnabled, MMhiddenEnabled, enableVehicleControls, enableMinimapControls, enableMobileRadio, enablePhoneColor, LightOff = true;
 static bool leftSignalActive, rightSignalActive, hazardsActive, radioWheelDisabled, mobileRadio, beltedUp, isCurrentlyShuffling, window0down, window1down, window2down, window3down, AWindowDown, hoodOpen, trunkOpen, door0Open, door1Open, door2Open, door3Open, initialized = false;
 static int phoneColorIndex, MMsafetyVal = 0;
@@ -43,6 +42,12 @@ static Ped getPlayerPed() {
 static Weapon getPlayerCurrentWeapon() {
 	return WEAPON::GET_SELECTED_PED_WEAPON(getPlayerPed());
 }
+static Vehicle getPlayerVehicle() {
+	if (PED::IS_PED_IN_ANY_VEHICLE(getPlayerPed(), 0)) {
+		return PED::GET_VEHICLE_PED_IS_USING(getPlayerPed());
+	}
+	return NULL;
+}
 void sendNotification(char* msg) {
 	UI::_SET_NOTIFICATION_TEXT_ENTRY("STRING");
 	UI::_ADD_TEXT_COMPONENT_STRING(msg);
@@ -58,19 +63,22 @@ DWORD to_DWORD(std::string input) {
 	DWORD output = strtol(input.c_str(), 0, 0);
 	return output;
 }
-#pragma endregion
 static void loadExternalSettings() {
 	file.read(ini);
+	//MISC
 	phoneColorIndex = std::stoi(ini["MISC"]["CellPhoneColor"]);
+	//FEATURES
 	enableMinimapControls = to_bool(ini["FEATURES"]["enableMinimapControls"]);
 	enableVehicleControls = to_bool(ini["FEATURES"]["enableVehicleControls"]);
 	enableMobileRadio = to_bool(ini["FEATURES"]["enableMobileRadio"]);
 	enablePhoneColor = to_bool(ini["FEATURES"]["enablePhoneColor"]);
+	//MAP MODES
 	MMoriginalEnabled = to_bool(ini["MAP MODES"]["enableOriginalMapMode"]);
 	MMbigMapEnabled = to_bool(ini["MAP MODES"]["enableBigMapMode"]);
 	MMzoomoutEnabled = to_bool(ini["MAP MODES"]["enableZoomedOutMode"]);
 	MMfullEnabled = to_bool(ini["MAP MODES"]["enableFullMode"]);
 	MMhiddenEnabled = to_bool(ini["MAP MODES"]["enableHiddenMode"]);
+	//KEYBINDS
 	CurrentWindowKey = (ini["KEYBINDS"]["CurrentWindowKey"]);
 	PassengerWindowKey = (ini["KEYBINDS"]["PassengerWindowKey"]);
 	DriverRearWindowKey = (ini["KEYBINDS"]["DriverRearWindowKey"]);
@@ -91,6 +99,9 @@ static void loadExternalSettings() {
 	RedLaserKey = (ini["KEYBINDS"]["RedLaserKey"]);
 	GreenLaserKey = (ini["KEYBINDS"]["GreenLaserKey"]);
 	DropWeaponKey = (ini["KEYBINDS"]["DropWeaponKey"]);
+	SuppressorKey = (ini["KEYBINDS"]["SuppressorKey"]);
+	FlashlightKey = (ini["KEYBINDS"]["FlashlightKey"]);
+	//CONTROLLER_VEHICLE
 	vehMinimapButton = std::stoi(ini["CONTROLLER_VEHICLE"]["vehMinimapButton"]);
 	vehRadioWheelButton = std::stoi(ini["CONTROLLER_VEHICLE"]["vehRadioWheelButton"]);
 	HazardsButton = std::stoi(ini["CONTROLLER_VEHICLE"]["HazardsButton"]);
@@ -107,12 +118,21 @@ static void loadExternalSettings() {
 	TrunkButton = std::stoi(ini["CONTROLLER_VEHICLE"]["TrunkButton"]);
 	OpenDoorButton = std::stoi(ini["CONTROLLER_VEHICLE"]["OpenDoorButton"]);
 	ShuffleSeatButton = std::stoi(ini["CONTROLLER_VEHICLE"]["ShuffleSeatButton"]);
+	//CONTROLLER_ON_FOOT
 	MinimapButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["MinimapButton"]);
 	MobileRadioButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["MobileRadioButton"]);
 	RadioWheelButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["RadioWheelButton"]);
 	RedLaserButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["RedLaserButton"]);
 	GreenLaserButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["GreenLaserButton"]);
 	DropWeaponButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["DropWeaponButton"]);
+	SuppressorButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["SuppressorButton"]);
+	FlashlightButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["FlashlightButton"]);
+}
+static void startTalkingAnimation() {
+	AI::TASK_PLAY_ANIM(getPlayerPed(), "mp_facial", "mic_chatter", 8.0f, -8.0f, -1, 33, 8.0f, 0, 0, 0);
+}
+static void stopTalkingAnimation() {
+	AI::STOP_ANIM_TASK(getPlayerPed(), "mp_facial", "mic_chatter", -4.0);
 }
 static void updateFeatures() {
 	//PHONE COLOR
@@ -137,7 +157,15 @@ static void updateFeatures() {
 	}
 	if (beltedUp) { CONTROLS::DISABLE_CONTROL_ACTION(0, 75, true); }
 	if (radioWheelDisabled) { CONTROLS::DISABLE_CONTROL_ACTION(0, 85, true); }
+	//TALKING ANIMATION
+	if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, 249)) {
+		startTalkingAnimation();
+	}
+	if (CONTROLS::IS_CONTROL_JUST_RELEASED(0, 249)) {
+		stopTalkingAnimation();
+	}
 }
+#pragma endregion
 #pragma region MINIMAP FUNCTIONS
 static void incrementMapState() {
 	switch (mapState)
@@ -239,12 +267,6 @@ static void cycleMinimapState() {
 }
 #pragma endregion
 #pragma region VEHICLE FUNCTIONS
-static Vehicle getPlayerVehicle() {
-	if (PED::IS_PED_IN_ANY_VEHICLE(getPlayerPed(), 0)) {
-		return PED::GET_VEHICLE_PED_IS_USING(getPlayerPed());
-	}
-	return NULL;
-}
 static bool isPlayerInThisSeat(int seatIndex) { 
 	if (VEHICLE::GET_PED_IN_VEHICLE_SEAT(getPlayerVehicle(), seatIndex) == getPlayerPed()) {
 		return true;
@@ -520,7 +542,7 @@ static void togglePlayerMobileRadio() {
 			AUDIO::SET_MOBILE_PHONE_RADIO_STATE(false);
 			AUDIO::SET_AUDIO_FLAG("MobileRadioInGame", 0);
 			AUDIO::SET_AUDIO_FLAG("AllowRadioDuringSwitch", 0);
-			sendNotification("Mobile Radio Off");
+			//sendNotification("Mobile Radio Off");
 			mobileRadio = false;
 			radioWheelDisabled = false;
 		}
@@ -528,7 +550,7 @@ static void togglePlayerMobileRadio() {
 			AUDIO::SET_MOBILE_PHONE_RADIO_STATE(true);
 			AUDIO::SET_AUDIO_FLAG("MobileRadioInGame", 1);
 			AUDIO::SET_AUDIO_FLAG("AllowRadioDuringSwitch", 1);
-			sendNotification("Mobile Radio On");
+			//sendNotification("Mobile Radio On");
 			mobileRadio = true;
 		}
 	}
@@ -596,6 +618,73 @@ static void dropWeapon() {
 		AI::TASK_PLAY_ANIM(getPlayerPed(), "weapons@projectile@", "drop", 2.0, -2.0, -1, 48, 0, false, false, false);
 		WEAPON::SET_PED_DROPS_INVENTORY_WEAPON(getPlayerPed(), getPlayerCurrentWeapon(), 0, 0, 0, 0);
 	}
+}
+static void toggleSuppressor() {
+	if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(getPlayerPed(), getPlayerCurrentWeapon(), 2205435306)) {//current weapon already has suppressor1
+		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(getPlayerPed(), getPlayerCurrentWeapon(), 2205435306);//remove suppressor1
+	}
+	else {//current weapon does NOT have suppressor1
+		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(getPlayerPed(), getPlayerCurrentWeapon(), 2205435306);//give suppressor1
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(getPlayerPed(), getPlayerCurrentWeapon(), 2805810788)) {//current weapon already has suppressor2
+		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(getPlayerPed(), getPlayerCurrentWeapon(), 2805810788);//remove suppressor2
+	}
+	else {//current weapon does NOT have suppressor2
+		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(getPlayerPed(), getPlayerCurrentWeapon(), 2805810788);//give suppressor2
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(getPlayerPed(), getPlayerCurrentWeapon(), 3271853210)) {//current weapon already has suppressor3
+		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(getPlayerPed(), getPlayerCurrentWeapon(), 3271853210);//remove suppressor3
+	}
+	else {//current weapon does NOT have suppressor3
+		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(getPlayerPed(), getPlayerCurrentWeapon(), 3271853210);//give suppressor3
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(getPlayerPed(), getPlayerCurrentWeapon(), 1709866683)) {//current weapon already has suppressor4
+		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(getPlayerPed(), getPlayerCurrentWeapon(), 1709866683);//remove suppressor4
+	}
+	else {//current weapon does NOT have suppressor4
+		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(getPlayerPed(), getPlayerCurrentWeapon(), 1709866683);//give suppressor4
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(getPlayerPed(), getPlayerCurrentWeapon(), 3859329886)) {//current weapon already has suppressor5
+		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(getPlayerPed(), getPlayerCurrentWeapon(), 3859329886);//remove suppressor5
+	}
+	else {//current weapon does NOT have suppressor5
+		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(getPlayerPed(), getPlayerCurrentWeapon(), 3859329886);//give suppressor5
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}
+static void toggleFlashlight() {
+	if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(getPlayerPed(), getPlayerCurrentWeapon(), 899381934)) {//current weapon already has flashlight1
+		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(getPlayerPed(), getPlayerCurrentWeapon(), 899381934);//remove flashlight1
+	}
+	else {//current weapon does NOT have flashlight1
+		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(getPlayerPed(), getPlayerCurrentWeapon(), 899381934);//give flashlight1
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(getPlayerPed(), getPlayerCurrentWeapon(), 1246324211)) {//current weapon already has flashlight2
+		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(getPlayerPed(), getPlayerCurrentWeapon(), 1246324211);//remove flashlight2
+	}
+	else {//current weapon does NOT have flashlight2
+		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(getPlayerPed(), getPlayerCurrentWeapon(), 1246324211);//give flashlight2
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(getPlayerPed(), getPlayerCurrentWeapon(), 1140676955)) {//current weapon already has flashlight3
+		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(getPlayerPed(), getPlayerCurrentWeapon(), 1140676955);//remove flashlight3
+	}
+	else {//current weapon does NOT have flashlight3
+		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(getPlayerPed(), getPlayerCurrentWeapon(), 1140676955);//give flashlight3
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(getPlayerPed(), getPlayerCurrentWeapon(), 2076495324)) {//current weapon already has flashlight4
+		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(getPlayerPed(), getPlayerCurrentWeapon(), 2076495324);//remove flashlight4
+	}
+	else {//current weapon does NOT have flashlight4
+		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(getPlayerPed(), getPlayerCurrentWeapon(), 2076495324);//give flashlight4
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 #pragma endregion
 #pragma region INPUT FUNCTIONS
@@ -665,6 +754,12 @@ static void checkForButtons() {
 			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, DropWeaponButton)) {
 				dropWeapon();
 			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, SuppressorButton)) {
+				toggleSuppressor();
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, FlashlightButton)) {
+				toggleFlashlight();
+			}
 		}
 	}
 }
@@ -685,12 +780,19 @@ static void checkForKeys() {
 	if (IsKeyJustUp(to_DWORD(GreenLaserKey))) {
 		toggleLaser(false);
 	}
-	if (getPlayerVehicle == NULL) {//IF PLAYER IS NOT IN VEHICLE
-		if (IsKeyJustUp(to_DWORD(DropWeaponKey))) {
+	if (getPlayerVehicle() == NULL) {//IF PLAYER IS NOT IN VEHICLE
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		if (IsKeyJustUp(to_DWORD(DropWeaponKey))) {//THESE AINT DOING SHIT NOW!!!!
 			dropWeapon();
 		}
+		if (IsKeyJustUp(to_DWORD(SuppressorKey))) {
+			toggleSuppressor();
+		}
+		if (IsKeyJustUp(to_DWORD(FlashlightKey))) {
+			toggleFlashlight();
+		}
 	}
-	if (getPlayerVehicle != NULL && enableVehicleControls) {//IF PLAYER IS IN VEHICLE AND CONTROLS ARE ENABLED
+	if (getPlayerVehicle() != NULL && enableVehicleControls) {//IF PLAYER IS IN VEHICLE AND CONTROLS ARE ENABLED
 		if (IsKeyJustUp(to_DWORD(HazardsKey))) {
 			toggleTurnSignals(hazard);
 		}
@@ -741,6 +843,7 @@ int main() {
 	minimapSafetyCheck();
 	STREAMING::REQUEST_ANIM_DICT("weapons@projectile@");
 	STREAMING::REQUEST_ANIM_DICT("swimming@scuba");
+	STREAMING::REQUEST_ANIM_DICT("mp_facial");
 	while (true)
 	{
 		updateFeatures();//ontick event
