@@ -774,15 +774,8 @@ static void checkForKeys() {
 	if (IsKeyJustUp(to_DWORD(ToggleMinimapKey))) {
 		if (enableMinimapControls && MMsafetyVal > 1) { cycleMinimapState(); }
 	}
-	if (IsKeyJustUp(to_DWORD(RedLaserKey))) {
-		toggleLaser(true);
-	}
-	if (IsKeyJustUp(to_DWORD(GreenLaserKey))) {
-		toggleLaser(false);
-	}
 	if (getPlayerVehicle() == NULL) {//IF PLAYER IS NOT IN VEHICLE
-		//////////////////////////////////////////////////////////////////////////////////////////////
-		if (IsKeyJustUp(to_DWORD(DropWeaponKey))) {//THESE AINT DOING SHIT NOW!!!!
+		if (IsKeyJustUp(to_DWORD(DropWeaponKey))) {
 			dropWeapon();
 		}
 		if (IsKeyJustUp(to_DWORD(SuppressorKey))) {
@@ -790,6 +783,12 @@ static void checkForKeys() {
 		}
 		if (IsKeyJustUp(to_DWORD(FlashlightKey))) {
 			toggleFlashlight();
+		}
+		if (IsKeyJustUp(to_DWORD(RedLaserKey))) {
+			toggleLaser(true);
+		}
+		if (IsKeyJustUp(to_DWORD(GreenLaserKey))) {
+			toggleLaser(false);
 		}
 	}
 	if (getPlayerVehicle() != NULL && enableVehicleControls) {//IF PLAYER IS IN VEHICLE AND CONTROLS ARE ENABLED
