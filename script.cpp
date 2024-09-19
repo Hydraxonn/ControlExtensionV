@@ -871,6 +871,7 @@ static void checkForKeys() {
 int main() {
 	loadExternalSettings();
 	minimapSafetyCheck();
+	setUpParachuteSmoke();
 	STREAMING::REQUEST_ANIM_DICT("weapons@projectile@");
 	STREAMING::REQUEST_ANIM_DICT("swimming@scuba");
 	STREAMING::REQUEST_ANIM_DICT("mp_facial");
@@ -878,7 +879,6 @@ int main() {
 	while (true)
 	{
 		updateFeatures();//ontick event
-		setUpParachuteSmoke();
 		checkForKeys();//update keyboard
 		checkForButtons();//update controller
 		WAIT(0);
