@@ -14,14 +14,15 @@ enum signalTypes {
 	right,
 	hazard
 };
-std::string CurrentWindowKey, PassengerWindowKey, DriverRearWindowKey, PassengerRearWindowKey, AllWindowsKey, HoodKey, TrunkKey, InteriorLightKey, ToggleRadioWheelKey, ToggleMobileRadioKey, ToggleMinimapKey, OpenDoorKey, SeatbeltKey, ShuffleSeatKey, LeftSignalKey, RightSignalKey, HazardsKey, RedLaserKey, GreenLaserKey, DropWeaponKey, FlashlightKey, SuppressorKey;
-static int vehMinimapButton, vehRadioWheelButton, HazardsButton, LeftSignalButton, RightSignalButton, SeatbeltButton, InteriorLightButton, CurrentWindowButton, PassengerWindowButton, DriverRearWindowButton, PassengerRearWindowButton, AllWindowsButton, HoodButton, TrunkButton, OpenDoorButton, ShuffleSeatButton, MinimapButton, MobileRadioButton, RadioWheelButton, RedLaserButton, GreenLaserButton, DropWeaponButton, FlashlightButton, SuppressorButton;
+std::string CurrentWindowKey, PassengerWindowKey, DriverRearWindowKey, PassengerRearWindowKey, AllWindowsKey, HoodKey, TrunkKey, InteriorLightKey, ToggleRadioWheelKey, ToggleMobileRadioKey, ToggleMinimapKey, OpenDoorKey, SeatbeltKey, ShuffleSeatKey, LeftSignalKey, RightSignalKey, HazardsKey, RedLaserKey, GreenLaserKey, DropWeaponKey, FlashlightKey, SuppressorKey, PassengerDoorKey;
+static int vehMinimapButton, vehRadioWheelButton, HazardsButton, LeftSignalButton, RightSignalButton, SeatbeltButton, InteriorLightButton, CurrentWindowButton, PassengerWindowButton, DriverRearWindowButton, PassengerRearWindowButton, AllWindowsButton, HoodButton, TrunkButton, OpenDoorButton, ShuffleSeatButton, MinimapButton, MobileRadioButton, RadioWheelButton, RedLaserButton, GreenLaserButton, DropWeaponButton, FlashlightButton, SuppressorButton, PassengerDoorButton;
 static bool MMoriginalEnabled, MMbigMapEnabled, MMzoomoutEnabled, MMfullEnabled, MMhiddenEnabled, enableVehicleControls, enableMinimapControls, enableMobileRadio, enablePhoneColor, LightOff = true;
 static bool leftSignalActive, rightSignalActive, hazardsActive, radioWheelDisabled, mobileRadio, beltedUp, isCurrentlyShuffling, window0down, window1down, window2down, window3down, AWindowDown, hoodOpen, trunkOpen, door0Open, door1Open, door2Open, door3Open, initialized = false;
 static int phoneColorIndex, MMsafetyVal = 0;
 static mapStates mapState;
-int ControlsToDisable[]  = { 22, 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,44,55,69,76,90,102,118,134,153,347,358 };
-int LBControlsToDisable[] = { 22, 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,37,38,68,89,117,133,152,346,44,55,69,76,90,102,118,134,153,347,358 };
+int smokeR, smokeG, smokeB = 0;
+int ControlsToDisable[] = {43,48,173,233,309,311, 22, 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,44,55,69,76,90,102,118,134,153,347,358 };
+int LBControlsToDisable[] = {43,48,173,233,309,311, 22, 15,47,52,58,85,115,174,261,14,46,54,74,101,103,104,119,175,262,344,355,356,27,42,172,18,21,70,73,105,114,120,132,136,137,141,154,176,258,264,337,345,353,354,357,45,57,80,140,177,263,23,49,53,56,75,144,145,0,244,28,36,86,113,350,351,352,7,26,29,50,79,93,121,37,38,68,89,117,133,152,346,44,55,69,76,90,102,118,134,153,347,358 };
 mINI::INIFile file("ControlExtensionV.ini");
 mINI::INIStructure ini;
 #pragma endregion
@@ -67,6 +68,9 @@ static void loadExternalSettings() {
 	file.read(ini);
 	//MISC
 	phoneColorIndex = std::stoi(ini["MISC"]["CellPhoneColor"]);
+	smokeR = std::stoi(ini["MISC"]["smokeR"]);
+	smokeG = std::stoi(ini["MISC"]["smokeG"]);
+	smokeB = std::stoi(ini["MISC"]["smokeB"]);
 	//FEATURES
 	enableMinimapControls = to_bool(ini["FEATURES"]["enableMinimapControls"]);
 	enableVehicleControls = to_bool(ini["FEATURES"]["enableVehicleControls"]);
@@ -101,6 +105,7 @@ static void loadExternalSettings() {
 	DropWeaponKey = (ini["KEYBINDS"]["DropWeaponKey"]);
 	SuppressorKey = (ini["KEYBINDS"]["SuppressorKey"]);
 	FlashlightKey = (ini["KEYBINDS"]["FlashlightKey"]);
+	PassengerDoorKey = (ini["KEYBINDS"]["PassengerDoorKey"]);
 	//CONTROLLER_VEHICLE
 	vehMinimapButton = std::stoi(ini["CONTROLLER_VEHICLE"]["vehMinimapButton"]);
 	vehRadioWheelButton = std::stoi(ini["CONTROLLER_VEHICLE"]["vehRadioWheelButton"]);
@@ -118,6 +123,7 @@ static void loadExternalSettings() {
 	TrunkButton = std::stoi(ini["CONTROLLER_VEHICLE"]["TrunkButton"]);
 	OpenDoorButton = std::stoi(ini["CONTROLLER_VEHICLE"]["OpenDoorButton"]);
 	ShuffleSeatButton = std::stoi(ini["CONTROLLER_VEHICLE"]["ShuffleSeatButton"]);
+	PassengerDoorButton = std::stoi(ini["CONTROLLER_VEHICLE"]["PassengerDoorButton"]);
 	//CONTROLLER_ON_FOOT
 	MinimapButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["MinimapButton"]);
 	MobileRadioButton = std::stoi(ini["CONTROLLER_ON_FOOT"]["MobileRadioButton"]);
@@ -428,7 +434,7 @@ static void toggleTrunk() {
 		trunkOpen = !trunkOpen;
 	}
 }
-static void openLocalDoor() {
+static void toggleLocalDoor() {
 	int seatIndex = getPlayerSeat();
 	switch (seatIndex) {
 	case -2://Seat index return failed, do nothing
@@ -475,11 +481,26 @@ static void openLocalDoor() {
 		break;
 	}
 }
+static void togglePassengerDoor() {
+	if (isPlayerInThisSeat(-1)) {//ensure player is driver
+		if (door1Open == false) {
+			AI::TASK_PLAY_ANIM(getPlayerPed(), "misschop_vehicleenter_exit", "std_ds_open_door_for_chop", 4.0, -2.0, -1, 48, 0, false, false, false);
+			WAIT(200);
+			VEHICLE::SET_VEHICLE_DOOR_OPEN(getPlayerVehicle(), 1, false, false);
+			door1Open = true;
+		}
+		else {
+			AI::TASK_PLAY_ANIM(getPlayerPed(), "misschop_vehicleenter_exit", "van_ds_open_door_for_chop", 4.0, -2.0, -1, 48, 0, false, false, false);
+			WAIT(300);
+			VEHICLE::SET_VEHICLE_DOOR_SHUT(getPlayerVehicle(), 1, false);
+			door1Open = false;
+		}
+	}
+}
 static void shuffleToNextSeat() {
 	if (!AI::GET_IS_TASK_ACTIVE(getPlayerPed(), 165) && !beltedUp) {//if player is not belted in AND isnt already playing this task
 		AI::TASK_SHUFFLE_TO_NEXT_VEHICLE_SEAT(getPlayerPed(), getPlayerVehicle());
 	}
-		
 }
 static void togglePlayerSeatbelt() {
 	if (getPlayerVehicle() != NULL) {
@@ -686,6 +707,10 @@ static void toggleFlashlight() {
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
+static void setUpParachuteSmoke() {
+	PLAYER::SET_PLAYER_CAN_LEAVE_PARACHUTE_SMOKE_TRAIL(PLAYER::GET_PLAYER_INDEX(), true);
+	PLAYER::SET_PLAYER_PARACHUTE_SMOKE_TRAIL_COLOR(PLAYER::GET_PLAYER_INDEX(), smokeR, smokeG, smokeB);
+}
 #pragma endregion
 #pragma region INPUT FUNCTIONS
 static void checkForButtons() {
@@ -717,10 +742,13 @@ static void checkForButtons() {
 				if (enableMinimapControls && MMsafetyVal > 1) { cycleMinimapState(); }
 			}
 			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, OpenDoorButton)) {
-				openLocalDoor();
+				toggleLocalDoor();
 			}
 			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, ShuffleSeatButton)) {
 				shuffleToNextSeat();
+			}
+			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, PassengerDoorButton)) {
+				togglePassengerDoor();
 			}
 			else if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, DriverRearWindowButton)) {
 				driverWindowAccess(2);
@@ -829,7 +857,10 @@ static void checkForKeys() {
 			toggleTrunk();
 		}
 		if (IsKeyJustUp(to_DWORD(OpenDoorKey))) {
-			openLocalDoor();
+			toggleLocalDoor();
+		}
+		if (IsKeyJustUp(to_DWORD(PassengerDoorKey))) {
+			togglePassengerDoor();
 		}
 		if (IsKeyJustUp(to_DWORD(ShuffleSeatKey))) {
 			shuffleToNextSeat();
@@ -843,9 +874,11 @@ int main() {
 	STREAMING::REQUEST_ANIM_DICT("weapons@projectile@");
 	STREAMING::REQUEST_ANIM_DICT("swimming@scuba");
 	STREAMING::REQUEST_ANIM_DICT("mp_facial");
+	STREAMING::REQUEST_ANIM_DICT("misschop_vehicleenter_exit");
 	while (true)
 	{
 		updateFeatures();//ontick event
+		setUpParachuteSmoke();
 		checkForKeys();//update keyboard
 		checkForButtons();//update controller
 		WAIT(0);
